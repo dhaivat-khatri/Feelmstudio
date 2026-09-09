@@ -1,0 +1,22 @@
+{
+  "name": "osai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI Production Studio — agentic idea-to-published-video pipeline",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "check": "npm run typecheck && npm run test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "animejs": "^4.5.0"
+  }
+}

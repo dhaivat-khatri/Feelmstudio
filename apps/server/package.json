@@ -1,0 +1,37 @@
+{
+  "name": "@osai/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HTTP app layer: wires persistence, jobs, and inference into a running service",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.12",
+    "@osai/core": "*",
+    "@osai/inference": "*",
+    "@osai/jobs": "*",
+    "@osai/persistence": "*",
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.23.1",
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
