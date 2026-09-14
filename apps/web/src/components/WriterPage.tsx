@@ -1,21 +1,20 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { AGENT_PERSONAS, type ProjectOverview } from '@osai/core';
+import type { ProjectOverview } from '@osai/core';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PrimarySurface } from '@/components/ui/primary-surface';
+import { Section } from '@/components/ui/section';
 import { ScriptForm } from '@/components/ScriptEditor';
-
-const persona = AGENT_PERSONAS.Writer;
 
 /**
  * Lyra's workspace: draft the script from the Director's brief (no idea input here —
  * it reads `overview.idea`, already persisted by the Director page), then hand off to
  * the same edit/save/diff-review flow `ScriptEditor`'s dialog uses (`ScriptForm`), just
- * embedded on a page instead of behind a modal.
+ * embedded on a page instead of behind a modal. The Director's brief sits as reference
+ * in the side rail, since it's exactly what a script draft should be responding to.
  */
 export function WriterPage({
   projectId,
@@ -31,6 +30,7 @@ export function WriterPage({
 }) {
   const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState<string | undefined>(undefined);
+  const { style } = overview;
 
   const generate = async () => {
     setBusy(true);
@@ -45,59 +45,61 @@ export function WriterPage({
   };
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-5">
-      <motion.div
-        className="flex items-center gap-3 rounded-lg border p-4"
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
+    <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1fr_320px]">
+      <PrimarySurface
+        role="Writer"
+        title="Draft the script"
+        action={
+          <Button disabled={busy || !overview.idea} onClick={generate}>
+            {busy ? <Loader2 className="size-4 animate-spin" /> : 'Generate script'}
+          </Button>
+        }
       >
-        <span
-          className="flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-          style={{ backgroundColor: persona.color }}
-        >
-          {persona.name
-            .split(' ')
-            .map((w) => w[0])
-            .join('')}
-        </span>
-        <div>
-          <p className="text-sm font-semibold">
-            {persona.name} · {persona.role}
+        {!overview.idea && (
+          <p className="mb-3 text-sm text-muted-foreground">
+            No idea on file yet — set one on the Director page first, or paste a script directly below.
           </p>
-          <p className="text-xs text-muted-foreground">{persona.tagline}</p>
-        </div>
-      </motion.div>
+        )}
+        <ScriptForm key={draft ?? 'blank'} projectId={projectId} initialScript={draft} onDone={onChanged} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Draft from the brief</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {!overview.idea && (
-            <p className="text-sm text-muted-foreground">
-              No idea on file yet — set one on the Director page first, or paste a script directly below.
-            </p>
-          )}
-          <div>
-            <Button size="sm" disabled={busy || !overview.idea} onClick={generate}>
-              {busy ? <Loader2 className="size-4 animate-spin" /> : 'Generate script'}
+        {overview.scenes.length > 0 && (
+          <div className="mt-6 flex justify-end">
+            <Button variant="ghost" size="sm" onClick={onContinue}>
+              Continue to Cinematographer →
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </PrimarySurface>
 
-      <Card>
-        <CardContent className="pt-6">
-          <ScriptForm key={draft ?? 'blank'} projectId={projectId} initialScript={draft} onDone={onChanged} />
-        </CardContent>
-      </Card>
-
-      {overview.scenes.length > 0 && (
-        <div className="flex justify-end">
-          <Button variant="secondary" size="sm" onClick={onContinue}>
-            Continue to Cinematographer →
-          </Button>
-        </div>
+      {style.format && (
+        <Section title="Responding to">
+          <dl className="flex flex-col gap-3 text-sm">
+            {style.tone && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Tone</dt>
+                <dd>{style.tone}</dd>
+              </div>
+            )}
+            {style.genre && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Genre</dt>
+                <dd>{style.genre}</dd>
+              </div>
+            )}
+            {style.mood && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Mood</dt>
+                <dd>{style.mood}</dd>
+              </div>
+            )}
+            {style.characters && style.characters.length > 0 && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Characters</dt>
+                <dd>{style.characters.join(', ')}</dd>
+              </div>
+            )}
+          </dl>
+        </Section>
       )}
     </div>
   );

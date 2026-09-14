@@ -115,6 +115,42 @@ const ALL_PARTS: readonly ScenePart[] = ['text', 'plan', 'image', 'video', 'narr
 
 const CONTENT_TYPES: Record<string, string> = { png: 'image/png', mp4: 'video/mp4' };
 
+// Routes that call a paid model (Gemini/Imagen/Veo/Lyria/Parallel Search) — there's
+// no auth in front of this API, so without a cap here anyone with the URL could
+// script-loop these and run up the GCP bill for free.
+const GENERATION_PATHS = [
+  '/projects/:id/style/generate',
+  '/projects/:id/research/generate',
+  '/projects/:id/script/generate',
+  '/projects/:id/scenes/:sceneId/plan/generate',
+  '/projects/:id/music/generate',
+  '/projects/:id/music/render',
+  '/projects/:id/dailies',
+  '/projects/:id/meeting',
+  '/projects/:id/scenes/:sceneId/deliberate',
+  '/projects/:id/deliberate',
+  '/projects/:id/scenes/:sceneId/generate',
+];
+
+// ponytail: per-instance in-memory counters, not shared across Cloud Run
+// instances or restarts — a determined abuser spread across instances gets a
+// higher effective cap, not zero. Good enough to stop an accidental/script-kiddie
+// loop from draining the budget; move to Firestore/Redis if that's not enough.
+function createRateLimiter({ windowMs, max }: { windowMs: number; max: number }) {
+  const hits = new Map<string, number[]>();
+  return async (c: Context, next: () => Promise<void>) => {
+    const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const now = Date.now();
+    const recent = (hits.get(ip) ?? []).filter((t) => now - t < windowMs);
+    if (recent.length >= max) {
+      return c.json({ error: 'Too many generation requests from this address — slow down and try again shortly.' }, 429);
+    }
+    recent.push(now);
+    hits.set(ip, recent);
+    await next();
+  };
+}
+
 /**
  * The HTTP surface over `AppContext`. Deliberately one file — a dozen or so routes
  * doesn't earn a router-per-resource split yet.
@@ -125,6 +161,9 @@ export function createApp(ctx: AppContext): Hono {
   app.onError((err, c) => {
     return c.json({ error: err instanceof Error ? err.message : String(err) }, 500);
   });
+
+  const generationLimiter = createRateLimiter({ windowMs: 60_000, max: 20 });
+  for (const path of GENERATION_PATHS) app.use(path, generationLimiter);
 
   app.post('/projects', async (c) => {
     const body = await c.req.json<{ title?: string }>();

@@ -14,7 +14,9 @@ import { Toaster } from '@/components/ui/sonner'
 document.documentElement.classList.add('dark')
 
 // Flat, path-based routing — 5 static pages with no nesting or params, so a
-// lookup table covers it without pulling in a router dependency.
+// lookup table covers it without pulling in a router dependency. (Reverted
+// from a single merged-page layout per explicit user direction — separate
+// pages stay separate.)
 const PAGES: Record<string, ComponentType> = {
   '/about': About,
   '/services': Services,

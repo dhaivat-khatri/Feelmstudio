@@ -214,6 +214,19 @@ describe('POST /projects/:id/research/generate (Researcher — Parallel)', () =>
   });
 });
 
+describe('generation-route rate limiting', () => {
+  it('429s once one client exceeds the per-minute cap on a paid-model route', async () => {
+    const created = await readJson(await app.request('/projects', post({ title: 'Lighthouse' })));
+    const id = created.projectId as string;
+    const call = () => app.request(`/projects/${id}/research/generate`, post({ idea: 'a lighthouse keeper' }));
+
+    const responses = await Promise.all(Array.from({ length: 21 }, call));
+    const statuses = responses.map((r) => r.status);
+    expect(statuses.filter((s) => s === 200)).toHaveLength(20);
+    expect(statuses.filter((s) => s === 429)).toHaveLength(1);
+  });
+});
+
 describe('crew coordination — dailies, meeting, notes', () => {
   const withCrewText = () =>
     createContext({

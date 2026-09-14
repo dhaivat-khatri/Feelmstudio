@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import type { ProjectLifecycle, ProjectOverview, SceneSummary } from '@osai/core';
+import { AGENT_PERSONAS, type PersonaRole, type ProjectLifecycle, type ProjectOverview, type SceneSummary } from '@osai/core';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
@@ -16,9 +16,16 @@ import { EditorPage } from '@/components/EditorPage';
 import { RoomsPanel } from '@/components/RoomsPanel';
 import { SceneCard } from '@/components/SceneCard';
 import { ScenePanel } from '@/components/ScenePanel';
+import { CrewRail } from '@/components/CrewRail';
+import { AgentHero } from '@/components/AgentHero';
 import { cn } from '@/lib/utils';
 
-type WorkspaceView = 'director' | 'writer' | 'cinematographer' | 'composer' | 'editor' | 'rooms' | 'scenes';
+const PERSONA_VIEWS = ['director', 'writer', 'cinematographer', 'composer', 'editor'] as const;
+type PersonaView = (typeof PERSONA_VIEWS)[number];
+type WorkspaceView = PersonaView | 'rooms' | 'scenes';
+
+const isPersonaView = (v: WorkspaceView): v is PersonaView => (PERSONA_VIEWS as readonly string[]).includes(v);
+const roleForView = (v: PersonaView): PersonaRole => (v.charAt(0).toUpperCase() + v.slice(1)) as PersonaRole;
 
 export function ProjectPage({ projectId }: { projectId: string }) {
   const [overview, setOverview] = useState<ProjectOverview | null>(null);
@@ -66,8 +73,8 @@ export function ProjectPage({ projectId }: { projectId: string }) {
         onApproveAll={approveAll}
       />
 
-      <div className="flex-1 overflow-y-auto p-5">
-        {!wizardDone ? (
+      {!wizardDone ? (
+        <div className="flex-1 overflow-y-auto p-5">
           <ProjectWizard
             projectId={projectId}
             onComplete={() => {
@@ -75,11 +82,17 @@ export function ProjectPage({ projectId }: { projectId: string }) {
               refresh();
             }}
           />
-        ) : (
-          <>
-            <div className="mb-4 flex items-center justify-between">
+        </div>
+      ) : (
+        <div className="flex flex-1 overflow-hidden">
+          <CrewRail
+            active={isPersonaView(view) ? roleForView(view) : null}
+            onSelect={(role) => setView(role.toLowerCase() as PersonaView)}
+          />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex items-center justify-between border-b px-5 py-2">
               <div className="flex gap-1 rounded-md border p-0.5">
-                {(['director', 'writer', 'cinematographer', 'composer', 'editor', 'rooms', 'scenes'] as const).map((v) => (
+                {(['scenes', 'rooms'] as const).map((v) => (
                   <Button
                     key={v}
                     size="sm"
@@ -94,62 +107,73 @@ export function ProjectPage({ projectId }: { projectId: string }) {
               {view === 'scenes' && <ScriptEditor projectId={projectId} onSaved={refresh} />}
             </div>
 
-            {view === 'director' && (
-              <DirectorPage
-                projectId={projectId}
-                overview={overview}
-                onChanged={refresh}
-                onContinue={() => setView('writer')}
-              />
-            )}
-            {view === 'writer' && (
-              <WriterPage
-                projectId={projectId}
-                overview={overview}
-                onChanged={refresh}
-                onContinue={() => setView('cinematographer')}
-              />
-            )}
-            {view === 'cinematographer' && (
-              <CinematographerPage
-                projectId={projectId}
-                overview={overview}
-                onChanged={refresh}
-                onContinue={() => setView('composer')}
-              />
-            )}
-            {view === 'composer' && (
-              <ComposerPage
-                projectId={projectId}
-                overview={overview}
-                onChanged={refresh}
-                onContinue={() => setView('editor')}
-              />
-            )}
-            {view === 'editor' && <EditorPage projectId={projectId} overview={overview} onChanged={refresh} />}
-            {view === 'rooms' && <RoomsPanel projectId={projectId} overview={overview} />}
-            {view === 'scenes' && (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {overview.scenes.map((scene, i) => (
-                  <motion.div
-                    key={scene.sceneId}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.04 }}
-                  >
-                    <SceneCard
-                      projectId={projectId}
-                      scene={scene}
-                      refreshToken={refreshToken}
-                      onOpen={() => setSelectedScene(scene)}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+            <div
+              className="flex-1 overflow-y-auto p-6 transition-[background] duration-500 sm:p-8"
+              style={{
+                background: isPersonaView(view)
+                  ? `radial-gradient(ellipse 85% 55% at 50% -8%, color-mix(in oklch, ${AGENT_PERSONAS[roleForView(view)].color}, transparent 90%), transparent 60%)`
+                  : undefined,
+              }}
+            >
+              {isPersonaView(view) && <AgentHero role={roleForView(view)} />}
+
+              {view === 'director' && (
+                <DirectorPage
+                  projectId={projectId}
+                  overview={overview}
+                  onChanged={refresh}
+                  onContinue={() => setView('writer')}
+                />
+              )}
+              {view === 'writer' && (
+                <WriterPage
+                  projectId={projectId}
+                  overview={overview}
+                  onChanged={refresh}
+                  onContinue={() => setView('cinematographer')}
+                />
+              )}
+              {view === 'cinematographer' && (
+                <CinematographerPage
+                  projectId={projectId}
+                  overview={overview}
+                  onChanged={refresh}
+                  onContinue={() => setView('composer')}
+                />
+              )}
+              {view === 'composer' && (
+                <ComposerPage
+                  projectId={projectId}
+                  overview={overview}
+                  onChanged={refresh}
+                  onContinue={() => setView('editor')}
+                />
+              )}
+              {view === 'editor' && <EditorPage projectId={projectId} overview={overview} onChanged={refresh} />}
+              {view === 'rooms' && <RoomsPanel projectId={projectId} overview={overview} />}
+              {view === 'scenes' && (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {overview.scenes.map((scene, i) => (
+                    <motion.div
+                      key={scene.sceneId}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.04 }}
+                    >
+                      <SceneCard
+                        projectId={projectId}
+                        scene={scene}
+                        refreshToken={refreshToken}
+                        onOpen={() => setSelectedScene(scene)}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <ScenePanel
         projectId={projectId}

@@ -261,3 +261,18 @@ body::after {
 .glow-brand {
   box-shadow: 0 12px 32px -14px color-mix(in oklch, var(--brand-1), transparent 55%);
 }
+
+/* Crew figures (AgentFigure): a slow settle when the cursor isn't near them,
+   so they read as alive at rest instead of frozen. */
+@keyframes agent-figure-idle-bob {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.agent-figure-idle canvas {
+  animation: agent-figure-idle-bob 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-figure-idle canvas { animation: none; }
+}

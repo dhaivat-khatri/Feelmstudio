@@ -30,6 +30,7 @@ apps/server/craft-memory.json
 
 # Large / regenerable media — frame sequences + raw video, rebuildable with ffmpeg.
 apps/web/public/agents/
+apps/web/public/agents-cutout/
 apps/web/public/sequence/
 apps/web/public/bg/
 *.mp4
@@ -39,6 +40,9 @@ apps/web/public/bg/
 .claude/
 .impeccable/
 .gstack/
+.superpowers/
+.21st/
+.codex/
 scroll-world-main/
 gan-harness/
 gstack-main/
@@ -53,6 +57,7 @@ docs/superpowers/
 # Internal working docs — not shipped with the code.
 PROGRESS.md
 PRODUCT.md
+SUBMISSION-STATUS.md
 user-journeys-v1.md
 Seed2_1_Model_Card.pdf
 agents.png

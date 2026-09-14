@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { AGENT_PERSONAS, type ProjectOverview, type SceneId, type ScenePlanPayload } from '@osai/core';
+import type { ProjectOverview, SceneId, ScenePlanPayload } from '@osai/core';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PrimarySurface } from '@/components/ui/primary-surface';
+import { Section } from '@/components/ui/section';
 import { Badge } from '@/components/ui/badge';
 import { STATUS_LABEL, STATUS_TONE } from '@/components/SceneCard';
 import { cn } from '@/lib/utils';
-
-const persona = AGENT_PERSONAS.Cinematographer;
 
 function planSummary(plan: ScenePlanPayload | undefined): string | null {
   if (!plan) return null;
@@ -25,7 +23,7 @@ function planSummary(plan: ScenePlanPayload | undefined): string | null {
  * pass, reusing the same `POST .../plan/generate` call `ScenePanel`'s per-scene
  * "Generate" button already uses — this page just sequences it across all scenes
  * (the wizard does this once during setup; this is the revisitable version) and
- * shows the resulting shot list at a glance.
+ * shows the resulting shot list at a glance, with plan coverage as a quick stat.
  */
 export function CinematographerPage({
   projectId,
@@ -84,101 +82,84 @@ export function CinematographerPage({
     setBulkProgress(null);
   };
 
+  const plannedCount = overview.scenes.filter((s) => plans.has(s.sceneId)).length;
+
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-5">
-      <motion.div
-        className="flex items-center gap-3 rounded-lg border p-4"
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
+    <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1fr_320px]">
+      <PrimarySurface
+        role="Cinematographer"
+        title="Shot list"
+        action={
+          overview.scenes.length > 0 ? (
+            <Button disabled={Boolean(bulkProgress)} onClick={planAll}>
+              {bulkProgress ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Planning {bulkProgress.done + 1} of {bulkProgress.total}
+                </>
+              ) : (
+                'Plan all scenes'
+              )}
+            </Button>
+          ) : undefined
+        }
       >
-        <span
-          className="flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-          style={{ backgroundColor: persona.color }}
-        >
-          {persona.name
-            .split(' ')
-            .map((w) => w[0])
-            .join('')}
-        </span>
-        <div>
-          <p className="text-sm font-semibold">
-            {persona.name} · {persona.role}
-          </p>
-          <p className="text-xs text-muted-foreground">{persona.tagline}</p>
-        </div>
-      </motion.div>
+        {overview.scenes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No scenes yet — draft a script on the Writer page first.</p>
+        ) : (
+          <ul className="flex flex-col divide-y">
+            {overview.scenes.map((scene) => {
+              const summary = planSummary(plans.get(scene.sceneId));
+              return (
+                <li key={scene.sceneId} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate">
+                      Scene {scene.ordinal}
+                      {scene.heading ? ` — ${scene.heading}` : ''}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">{summary ?? 'Not planned yet'}</span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Badge className={cn(STATUS_TONE[scene.status] ?? STATUS_TONE.notStarted)}>
+                      {STATUS_LABEL[scene.status] ?? scene.status}
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={rowBusy[scene.sceneId] || Boolean(bulkProgress)}
+                      onClick={() => planOne(scene.sceneId)}
+                    >
+                      {rowBusy[scene.sceneId] ? <Loader2 className="size-4 animate-spin" /> : summary ? 'Redo' : 'Plan'}
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Shot Planning</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {overview.scenes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No scenes yet — draft a script on the Writer page first.</p>
-          ) : (
-            <div>
-              <Button size="sm" disabled={Boolean(bulkProgress)} onClick={planAll}>
-                {bulkProgress ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Planning {bulkProgress.done + 1} of {bulkProgress.total}
-                  </>
-                ) : (
-                  'Plan all scenes'
-                )}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {overview.scenes.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Shot List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="flex flex-col divide-y">
-              {overview.scenes.map((scene) => {
-                const summary = planSummary(plans.get(scene.sceneId));
-                return (
-                  <li key={scene.sceneId} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate">
-                        Scene {scene.ordinal}
-                        {scene.heading ? ` — ${scene.heading}` : ''}
-                      </span>
-                      <span className="truncate text-xs text-muted-foreground">
-                        {summary ?? 'Not planned yet'}
-                      </span>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <Badge className={cn(STATUS_TONE[scene.status] ?? STATUS_TONE.notStarted)}>
-                        {STATUS_LABEL[scene.status] ?? scene.status}
-                      </Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={rowBusy[scene.sceneId] || Boolean(bulkProgress)}
-                        onClick={() => planOne(scene.sceneId)}
-                      >
-                        {rowBusy[scene.sceneId] ? <Loader2 className="size-4 animate-spin" /> : summary ? 'Redo' : 'Plan'}
-                      </Button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+        {overview.scenes.length > 0 && (
+          <div className="mt-6 flex justify-end">
+            <Button variant="ghost" size="sm" onClick={onContinue}>
+              Continue to Composer →
+            </Button>
+          </div>
+        )}
+      </PrimarySurface>
 
       {overview.scenes.length > 0 && (
-        <div className="flex justify-end">
-          <Button variant="secondary" size="sm" onClick={onContinue}>
-            Continue to Composer →
-          </Button>
-        </div>
+        <Section title="Coverage">
+          <div className="flex items-baseline gap-2">
+            <span className="font-heading text-3xl">{plannedCount}</span>
+            <span className="text-sm text-muted-foreground">of {overview.scenes.length} scenes planned</span>
+          </div>
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary transition-[width]"
+              style={{ width: `${overview.scenes.length ? (plannedCount / overview.scenes.length) * 100 : 0}%` }}
+            />
+          </div>
+        </Section>
       )}
     </div>
   );
