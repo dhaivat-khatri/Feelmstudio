@@ -1,0 +1,51 @@
+# Deploy bundle excludes — separate from .gitignore on purpose: the app
+# reads apps/web/public/{agents,agents-cutout,sequence,bg}/ at runtime, so
+# those must ship in the container even though they're too big to commit
+# to git. Don't let gcloud fall back to .gitignore for this reason.
+
+.git/
+.gitignore
+.dockerignore
+.DS_Store
+.env
+.env.*
+
+# Tooling, agent skills, and scratch — not part of the app.
+.claude/
+.impeccable/
+.gstack/
+.superpowers/
+.21st/
+.codex/
+.qa-consistency/
+scroll-world-main/
+gan-harness/
+gstack-main/
+agentimagevideo/
+research/
+docs/superpowers/
+SKILL.md
+skills-lock.json
+skills/
+
+# Reinstalled by npm ci / pip during the build.
+node_modules/
+**/node_modules/
+**/.venv/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/*.egg-info/
+**/dist/
+**/*.tsbuildinfo
+
+# Root-level docs/media not served by the app.
+/PROGRESS.md
+/PRODUCT.md
+/SUBMISSION-STATUS.md
+/user-journeys-v1.md
+/Seed2_1_Model_Card.pdf
+/Production_studio.mp4
+/new1.pdf
+/new2.pdf
+/agents.png
