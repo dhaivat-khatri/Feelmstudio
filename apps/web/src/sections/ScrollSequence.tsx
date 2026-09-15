@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useMotionValueEvent, useTransform } from 'framer-motion';
-import { BrandMark } from '@/components/BrandMark';
 
 const FRAME_COUNT = 240;
 const framePath = (i: number) => `/sequence/frame-${String(i + 1).padStart(3, '0')}.jpg`;
@@ -133,56 +132,49 @@ export function ScrollSequence() {
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden bg-black">
         <canvas ref={canvasRef} className="film-grade absolute inset-0 size-full" />
 
-        {/* Warm grade wash — nudges the frames further off cold grey. */}
-        <div className="pointer-events-none absolute inset-0 z-[4] bg-[#25120a] opacity-30 mix-blend-multiply" />
-
         {/* Scrim — the frames vary from light to dark backgrounds; without this,
-            white overlay text loses contrast against the brighter ones. A
-            centred radial keeps the copy readable without flattening the frame. */}
-        <div className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-b from-black/70 via-black/40 to-black/70" />
-        <div className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_50%_45%_at_50%_46%,rgba(0,0,0,0.6),transparent_75%)]" />
-
-        {/* Cinema letterbox. */}
-        <div className="letterbox-bar top-0" />
-        <div className="letterbox-bar bottom-0" />
+            overlay text loses contrast against the brighter ones. One clean
+            bottom-anchored gradient, not a stack of vignettes. */}
+        <div className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-b from-black/10 via-black/25 to-black/70" />
 
         {/* Pinned title cards through the middle of the scrub. */}
         <motion.p
           style={{ opacity: beat1, y: beat1y }}
-          className="pointer-events-none absolute z-10 px-6 text-center font-heading text-[clamp(2rem,6vw,4.25rem)] font-medium leading-[1.05] text-white"
+          className="hero-display pointer-events-none absolute z-10 max-w-5xl px-6 text-center uppercase leading-[0.92] text-white text-[clamp(2.4rem,9vw,6.5rem)]"
         >
-          An idea.
+          You write a sentence.
         </motion.p>
         <motion.p
           style={{ opacity: beat2, y: beat2y }}
-          className="pointer-events-none absolute z-10 px-6 text-center font-heading text-[clamp(2rem,6vw,4.25rem)] font-medium leading-[1.05] text-white"
+          className="hero-display pointer-events-none absolute z-10 max-w-5xl px-6 text-center uppercase leading-[0.92] text-white text-[clamp(2.4rem,9vw,6.5rem)]"
         >
-          A crew of five.
+          Five agents pick it up.
         </motion.p>
         <motion.p
           style={{ opacity: beat3, y: beat3y }}
-          className="pointer-events-none absolute z-10 px-6 text-center font-heading text-[clamp(2rem,6vw,4.25rem)] font-medium leading-[1.05] text-white"
+          className="hero-display pointer-events-none absolute z-10 max-w-5xl px-6 text-center uppercase leading-[0.92] text-white text-[clamp(2.4rem,9vw,6.5rem)]"
         >
-          A finished film.
+          It comes back a film.
         </motion.p>
 
         <motion.div
           style={{ opacity: introOpacity, y: introY }}
-          className="pointer-events-none relative z-10 flex flex-col items-center px-6 text-center"
+          className="pointer-events-none relative z-10 flex w-full flex-col items-center px-4 text-center"
         >
-          <div className="mb-8 flex size-14 items-center justify-center rounded-2xl bg-brand-1 sm:size-16">
-            <BrandMark size={32} className="text-[#17100a]" />
-          </div>
-          <h1 className="max-w-4xl text-balance text-[clamp(2.75rem,7vw,5.5rem)] font-medium leading-[1.02] text-white">
-            Idea to published film
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-1">
+            Feelm Studio
+          </p>
+          <h1 className="hero-display w-full text-balance uppercase leading-[0.86] text-white text-[clamp(3.2rem,13vw,11.5rem)]">
+            <span className="block">Idea to</span>
+            <span className="block">published film</span>
           </h1>
-          <p className="mt-6 max-w-md text-balance text-white/65">
-            A studio run by five AI agents — Director to Editor — that carries one idea all the way to
-            a finished film.
+          <p className="mt-8 max-w-sm text-balance text-sm text-white/60">
+            Type a sentence. A director, a writer, a cinematographer, a composer, and an editor
+            take it from there.
           </p>
           <a
             href="/studio"
-            className="pointer-events-auto mt-10 inline-flex items-center rounded-full bg-brand-1 px-7 py-3.5 text-sm font-semibold text-[#17100a] transition-colors hover:bg-brand-2"
+            className="pointer-events-auto mt-9 inline-flex items-center rounded-full bg-brand-1 px-7 py-3.5 text-sm font-semibold text-[#17100a] transition-colors hover:bg-brand-2"
           >
             Launch the studio
           </a>
@@ -205,7 +197,7 @@ export function ScrollSequence() {
           className="pointer-events-none absolute bottom-16 z-10 px-6 text-center"
         >
           <p className="text-balance text-lg font-medium text-white sm:text-xl">
-            Every frame, generated. Every cut, yours.
+            Nobody touched a camera. It's still your film.
           </p>
         </motion.div>
 

@@ -98,34 +98,34 @@ body {
 }
 
 .dark {
-  --background: #100e0b;
-  --foreground: #f3efe6;
-  --card: #191510;
-  --card-foreground: #f3efe6;
-  --popover: #191510;
-  --popover-foreground: #f3efe6;
-  --primary: #d69a5b;
-  --primary-foreground: #17100a;
-  --secondary: #201b15;
-  --secondary-foreground: #f3efe6;
-  --muted: #201b15;
-  --muted-foreground: #a1978a;
-  --accent: #201b15;
-  --accent-foreground: #f3efe6;
+  --background: #0c0a08;
+  --foreground: #f5f1e8;
+  --card: #221b12;
+  --card-foreground: #f5f1e8;
+  --popover: #221b12;
+  --popover-foreground: #f5f1e8;
+  --primary: #e8963f;
+  --primary-foreground: #170f06;
+  --secondary: #241d14;
+  --secondary-foreground: #f5f1e8;
+  --muted: #241d14;
+  --muted-foreground: #a89d8c;
+  --accent: #241d14;
+  --accent-foreground: #f5f1e8;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: rgba(243, 239, 230, 0.1);
-  --input: rgba(243, 239, 230, 0.13);
-  --ring: #d69a5b;
-  --brand-1: #d69a5b;
-  --brand-2: #c07c3f;
-  --sidebar: #100e0b;
-  --sidebar-foreground: #f3efe6;
-  --sidebar-primary: #d69a5b;
-  --sidebar-primary-foreground: #17100a;
-  --sidebar-accent: #201b15;
-  --sidebar-accent-foreground: #f3efe6;
-  --sidebar-border: rgba(243, 239, 230, 0.1);
-  --sidebar-ring: #d69a5b;
+  --border: rgba(245, 241, 232, 0.12);
+  --input: rgba(245, 241, 232, 0.15);
+  --ring: #e8963f;
+  --brand-1: #e8963f;
+  --brand-2: #d67b2c;
+  --sidebar: #0c0a08;
+  --sidebar-foreground: #f5f1e8;
+  --sidebar-primary: #e8963f;
+  --sidebar-primary-foreground: #170f06;
+  --sidebar-accent: #241d14;
+  --sidebar-accent-foreground: #f5f1e8;
+  --sidebar-border: rgba(245, 241, 232, 0.12);
+  --sidebar-ring: #e8963f;
 
   --status-queued: oklch(0.7 0.15 250);
   --status-approved: oklch(0.7 0.15 150);
@@ -162,10 +162,19 @@ body {
   letter-spacing: -0.028em;
 }
 
-/* Warm film grade — pulls the cold broadcast-grey scroll frames onto a Kodak-
-   warm stock so they belong to the brand instead of fighting it. */
+/* Clean grade — real footage stays real; a light contrast/saturation lift
+   instead of a warm sepia push, so it reads as shot-on-camera, not vintage. */
 .film-grade {
-  filter: sepia(0.26) saturate(1.32) contrast(1.05) brightness(0.9) hue-rotate(-6deg);
+  filter: contrast(1.05) saturate(1.04);
+}
+
+/* The hero display face: same Fraunces as every other heading, but dialed off
+   the softness so it reads as a confident headline rather than magazine body
+   type — one deliberate exception to the base h1 rule, used only here. */
+.hero-display {
+  font-variation-settings: 'SOFT' 0, 'WONK' 0;
+  font-weight: 560;
+  letter-spacing: -0.025em;
 }
 
 /* The studio surface — a plain ground with one faint warm bloom off the top,
@@ -240,22 +249,20 @@ body::after {
   animation: slow-zoom 20s ease-in-out infinite alternate;
 }
 
-/* The dark studio void: a warm charcoal gradient with one soft off-centre bloom
-   of the gold accent. Texture comes from the global film grain, not a dot field. */
+/* The dark studio void: flat warm charcoal with one quiet bloom of the gold
+   accent top-centre. Texture comes from the global film grain, not a dot field. */
 .void-bg {
   position: relative;
-  background: radial-gradient(ellipse 110% 55% at 50% -12%, color-mix(in oklch, var(--brand-1), transparent 88%), transparent 60%),
-    radial-gradient(ellipse 80% 45% at 12% 112%, color-mix(in oklch, var(--brand-1), transparent 92%), transparent 55%),
-    linear-gradient(180deg, #1b1209 0%, #100e0b 100%);
+  background: radial-gradient(ellipse 70% 40% at 50% -10%, color-mix(in oklch, var(--brand-1), transparent 94%), transparent 60%),
+    var(--background);
 }
 
+/* A precise card, not a floating glass pane — a solid surface with a real
+   edge, so it reads as an object on the page rather than a blur effect. */
 .glass-card {
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 24px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
 }
 
 .glow-brand {

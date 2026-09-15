@@ -11,13 +11,13 @@ const CARDS = [
     href: '/services',
     image: '/landing/services.webp',
     title: 'Services',
-    body: 'Five specialists, five real jobs, one handoff chain.',
+    body: 'Five specialists, each doing one real job, handing it to the next.',
   },
   {
     href: '/portfolio',
     image: '/media/980aa46c-4537-4788-be8a-491ad2b7c6fa.png',
     title: 'Portfolio',
-    body: 'Every frame, straight out of the pipeline.',
+    body: "What the pipeline's actually produced so far.",
   },
   {
     href: '/pricing',
@@ -47,18 +47,22 @@ export function Explore() {
   const fadeOut = Math.min(Math.max((1 - progress) / 0.2, 0), 1);
   const opacity = Math.min(fadeIn, fadeOut);
   const headingY = (0.5 - settle) * 50;
+  // Drifts the card art opposite the scroll direction — a slower plane behind
+  // the cards' own settle-in, so the section reads as depth rather than a
+  // flat fade, without touching the hero's frame-scrub technique.
+  const parallaxY = (0.5 - progress) * 28;
 
   return (
     <section ref={ref} className="void-bg relative overflow-hidden px-6 py-28">
       <h2
         style={{ opacity, transform: `translateY(${headingY}px)` }}
-        className="relative mx-auto max-w-2xl text-balance text-center text-3xl text-white transition-[opacity,transform] duration-100 ease-out sm:text-5xl"
+        className="hero-display relative mx-auto max-w-4xl text-balance text-center uppercase leading-[0.92] text-white transition-[opacity,transform] duration-100 ease-out text-[clamp(2.4rem,7vw,5.5rem)]"
       >
         The rest of the world
       </h2>
       <p
         style={{ opacity, transform: `translateY(${headingY}px)` }}
-        className="relative mx-auto mt-4 max-w-md text-balance text-center text-white/60 transition-[opacity,transform] duration-100 ease-out"
+        className="relative mx-auto mt-5 max-w-md text-balance text-center text-white/60 transition-[opacity,transform] duration-100 ease-out"
       >
         The crew, the pipeline, the price, and how to reach us.
       </p>
@@ -66,22 +70,26 @@ export function Explore() {
       <div className="relative mx-auto mt-16 grid max-w-6xl gap-5 sm:grid-cols-2 lg:grid-cols-5">
         {CARDS.map((c, i) => {
           const cardSettle = lingerEase(Math.min(Math.max((progress - 0.1 - i * 0.04) / 0.55, 0), 1), 0.3);
+          const tilt = (1 - cardSettle) * (i % 2 === 0 ? -4 : 4);
+          const scale = 0.92 + cardSettle * 0.08;
           return (
             <a
               key={c.href}
               href={c.href}
               style={{
                 opacity: opacity * cardSettle,
-                transform: `translateY(${(1 - cardSettle) * 26}px)`,
+                transform: `translateY(${(1 - cardSettle) * 26}px) scale(${scale}) rotate(${tilt}deg)`,
               }}
-              className="group glass-card overflow-hidden transition-[opacity,transform,scale] duration-150 ease-out hover:scale-[1.02]"
+              className="group glass-card overflow-hidden transition-[opacity,transform] duration-150 ease-out"
             >
               <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={c.image}
-                  alt=""
-                  className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                <div style={{ transform: `translateY(${parallaxY}px)` }} className="size-full">
+                  <img
+                    src={c.image}
+                    alt=""
+                    className="size-full scale-110 object-cover transition-transform duration-500 group-hover:scale-125"
+                  />
+                </div>
               </div>
               <div className="p-4">
                 <p className="font-heading text-lg text-white">{c.title}</p>
